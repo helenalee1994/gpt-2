@@ -70,30 +70,30 @@ def interact_model(
         ckpt = tf.train.latest_checkpoint(os.path.join('models', model_name))
         saver.restore(sess, ckpt)
 
-    with open(filename, 'r') as f:
-        for i, raw_text in enumerate(f):
-            if not i%2: 
-                context_tokens = enc.encode(raw_text)
-                # may be useful if we want to evaluate the fields respectively
-                #last_token = raw_text.split(' ')[-1].replace('\n','')
+        with open(filename, 'r') as f:
+            for i, raw_text in enumerate(f):
+                if not i%2: 
+                    context_tokens = enc.encode(raw_text)
+                    # may be useful if we want to evaluate the fields respectively
+                    #last_token = raw_text.split(' ')[-1].replace('\n','')
 
-                generated = 0
-                for _ in range(nsamples // batch_size):
-                    out = sess.run(output, feed_dict={
-                        context: [context_tokens for _ in range(batch_size)]
-                    })[:, len(context_tokens):]
+                    generated = 0
+                    for _ in range(nsamples // batch_size):
+                        out = sess.run(output, feed_dict={
+                            context: [context_tokens for _ in range(batch_size)]
+                        })[:, len(context_tokens):]
 
-                    for i in range(batch_size):
-                        generated += 1
-                        text = enc.decode(out[i])
-                        # not interested in the words after '<'
-                        text = text.split('<')[0] 
+                        for i in range(batch_size):
+                            generated += 1
+                            text = enc.decode(out[i])
+                            # not interested in the words after '<'
+                            text = text.split('<')[0] 
 
-            # filter out \n only sentences
-            else:
-                text = '\n'
-            to_write += text
-        save(filename.replace('test','pred'), to_write)
+                # filter out \n only sentences
+                else:
+                    text = '\n'
+                to_write += text
+            save(filename.replace('test','pred'), to_write)
         
 def save(filename, to_write, overwrite = False):
     make_dir(filename)
