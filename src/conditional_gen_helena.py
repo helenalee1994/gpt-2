@@ -69,8 +69,9 @@ def interact_model(
         saver = tf.train.Saver()
         ckpt = tf.train.latest_checkpoint(os.path.join('models', model_name))
         saver.restore(sess, ckpt)
-
+        
         with open(filename, 'r') as f:
+            to_write = ''
             for i, raw_text in enumerate(f):
                 if not i%2: 
                     context_tokens = enc.encode(raw_text)
