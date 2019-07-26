@@ -20,6 +20,7 @@ def interact_model(
     top_p=0.0,
     filename='',
     nrecipes=2*4*100, 
+    overwrite=False
 ):
     """
     Interactively run the model
@@ -40,8 +41,9 @@ def interact_model(
      special setting meaning no restrictions. 40 generally is a good value.
     :top_p=0.0 : Float value controlling diversity. Implements nucleus sampling,
      overriding top_k if set to a value > 0. A good setting is 0.9.
-     filename='' : Path to the X_test set; each input is splited by \n\n
+    :filename='' : Path to the X_test set; each input is splited by \n\n
      nrecipes=2*4*100, sampling 100 sets of recipes; ignore the odd lines (*2), four fields(*4), 100 sets(*100)
+    :overwrite=False : whether to overwrite the y_pred
     """
     if batch_size is None:
         batch_size = 1
@@ -103,7 +105,7 @@ def interact_model(
                     to_write += text
                else:
                     break
-        save(filename.replace('test','pred'), to_write)
+        save(filename.replace('test','pred'), to_write, overwrite)
         
 def save(filename, to_write, overwrite = False):
     make_dir(filename)
