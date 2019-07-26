@@ -103,7 +103,7 @@ def interact_model(
                     if (i/2/4)%10 == 0:
                         print('processing file %d ' % (i/2/4))
                     to_write += text
-               else:
+                else:
                     break
         save(filename.replace('X_test','y_pred'), to_write, overwrite)
         
