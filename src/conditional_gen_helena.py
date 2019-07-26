@@ -98,7 +98,7 @@ def interact_model(
                     
                 # show some progress    
                 if i%10:
-                    print('processing file %n ' % i/4/2)
+                    print('processing file %d ' % i/4/2)
                 to_write += text
             save(filename.replace('test','pred'), to_write)
         
