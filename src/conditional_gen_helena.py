@@ -19,7 +19,7 @@ def interact_model(
     top_k=0,
     top_p=0.0,
     filename='',
-    nrecipes=2*4*100, # sample 100 recipes
+    nrecipes=2*4*100, 
 ):
     """
     Interactively run the model
@@ -41,6 +41,7 @@ def interact_model(
     :top_p=0.0 : Float value controlling diversity. Implements nucleus sampling,
      overriding top_k if set to a value > 0. A good setting is 0.9.
      filename='' : Path to the X_test set; each input is splited by \n\n
+     nrecipes=2*4*100, sampling 100 sets of recipes; ignore the odd lines (*2), four fields(*4), 100 sets(*100)
     """
     if batch_size is None:
         batch_size = 1
@@ -74,7 +75,7 @@ def interact_model(
         with open(filename, 'r') as f:
             to_write = ''
             for i, raw_text in enumerate(f):
-                if not i%2: 
+                if not i%2 and n < nrecipes: 
                     context_tokens = enc.encode(raw_text)
                     # may be useful if we want to evaluate the fields respectively
                     #last_token = raw_text.split(' ')[-1].replace('\n','')
@@ -92,7 +93,7 @@ def interact_model(
                             text = text.split('<')[0] 
 
                 # filter out \n only sentences
-                else:
+                elif n < nrecipes:
                     text = '\n'
                 to_write += text
             save(filename.replace('test','pred'), to_write)
