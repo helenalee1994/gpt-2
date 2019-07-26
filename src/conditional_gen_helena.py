@@ -75,7 +75,7 @@ def interact_model(
         with open(filename, 'r') as f:
             to_write = ''
             for i, raw_text in enumerate(f):
-                if not i%2 and n < nrecipes: 
+                if not i%2 and i < nrecipes: 
                     context_tokens = enc.encode(raw_text)
                     # may be useful if we want to evaluate the fields respectively
                     #last_token = raw_text.split(' ')[-1].replace('\n','')
@@ -93,8 +93,12 @@ def interact_model(
                             text = text.split('<')[0] 
 
                 # filter out \n only sentences
-                elif n < nrecipes:
+                elif i < nrecipes:
                     text = '\n'
+                    
+                # show some progress    
+                if i%10:
+                    print('processing file %n ' % i/4/2)
                 to_write += text
             save(filename.replace('test','pred'), to_write)
         
