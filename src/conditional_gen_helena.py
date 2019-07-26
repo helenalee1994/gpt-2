@@ -18,7 +18,8 @@ def interact_model(
     temperature=1,
     top_k=0,
     top_p=0.0,
-    filename=''
+    filename='',
+    nrecipes=2*4*100, # sample 100 recipes
 ):
     """
     Interactively run the model
