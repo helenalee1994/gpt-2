@@ -105,7 +105,7 @@ def interact_model(
                     to_write += text
                else:
                     break
-        save(filename.replace('test','pred'), to_write, overwrite)
+        save(filename.replace('X_test','y_pred'), to_write, overwrite)
         
 def save(filename, to_write, overwrite = False):
     make_dir(filename)
