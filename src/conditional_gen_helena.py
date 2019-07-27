@@ -93,7 +93,7 @@ def interact_model(
                                 generated += 1
                                 text = enc.decode(out[i])
                                 # not interested in the words after '<'
-                                text = text.split('\n','').split('<')[0] 
+                                text = text.replace('\n','').split('<')[0] 
 
                     # filter out \n only sentences
                     else:
