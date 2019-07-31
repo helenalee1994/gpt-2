@@ -77,9 +77,9 @@ def interact_model(
         
         with open(filename, 'r') as f:
             to_write = ''
-            for i, raw_text in enumerate(f):
-                if i < nrecipes or nrecipes == -1:
-                    if not i%2: 
+            for j, raw_text in enumerate(f):
+                if j < nrecipes or nrecipes == -1:
+                    if not j%2: 
                         context_tokens = enc.encode(raw_text)
                         # may be useful if we want to evaluate the fields respectively
                         #last_token = raw_text.split(' ')[-1].replace('\n','')
@@ -101,8 +101,8 @@ def interact_model(
                         text = '\n'
                         
                     # show some progress    
-                    if i %91 == 0:
-                        print('processing file %d ' % i)
+                    if j %91 == 0:
+                        print('processing file %d ' % j)
                         print(raw_text)
                         print('*'*10)
                         print(text)
