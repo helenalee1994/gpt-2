@@ -77,7 +77,7 @@ def interact_model(
         with open(filename, 'r') as f:
             to_write = ''
             for i, raw_text in enumerate(f):
-                if i < nrecipes:
+                if i < nrecipes or nrecipes == -1:
                     if not i%2: 
                         context_tokens = enc.encode(raw_text)
                         # may be useful if we want to evaluate the fields respectively
