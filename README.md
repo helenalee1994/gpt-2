@@ -97,6 +97,13 @@ We may release code for evaluating the models on various benchmarks.
 
 We are still considering release of the larger models.
 
+
+## Modification to nshepperd/gpt-2
+append eval for bleu calaculation
+requirement.txt --> requirement_web.txt
+src/interactive_conditional_samples.py --> conditional_gen_helena.py
+src/interactive_conditional_samples.py --> conditional_gen_web.py
+append src/path.py: must change according to the path/environment everytime
 ## License
 
 [MIT](./LICENSE)
