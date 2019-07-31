@@ -8,6 +8,7 @@ import numpy as np
 import tensorflow as tf
 
 from . import model, sample, encoder
+from .path import path_to_model
 
 def interact_model(
     model_name='117M',
@@ -51,7 +52,7 @@ def interact_model(
 
     enc = encoder.get_encoder(model_name)
     hparams = model.default_hparams()
-    with open(os.path.join('models', model_name, 'hparams.json')) as f:
+    with open(os.path.join(path_to_model, model_name, 'hparams.json')) as f:
         hparams.override_from_dict(json.load(f))
 
     if length is None:
@@ -71,7 +72,7 @@ def interact_model(
         )
 
         saver = tf.train.Saver()
-        ckpt = tf.train.latest_checkpoint(os.path.join('models', model_name))
+        ckpt = tf.train.latest_checkpoint(os.path.join(path_to_model, model_name))
         saver.restore(sess, ckpt)
         
         with open(filename, 'r') as f:
@@ -100,7 +101,7 @@ def interact_model(
                         text = '\n'
 
                     # show some progress    
-                    if (i/2/4)%10 == 0:
+                    if (i/2/4)%1000 == 0:
                         print('processing file %d ' % (i/2/4))
                     to_write += text
                     print(to_write)
