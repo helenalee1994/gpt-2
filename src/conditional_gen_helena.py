@@ -7,7 +7,7 @@ import os
 import numpy as np
 import tensorflow as tf
 
-import model, sample, encoder
+from . import model, sample, encoder
 
 def interact_model(
     model_name='117M',
