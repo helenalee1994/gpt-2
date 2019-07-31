@@ -171,6 +171,11 @@ def main():
 
         print('Loading dataset...')
         chunks = load_dataset(enc, args.dataset, args.combine)
+        
+        # helena
+        print('length', len(chunks))
+        
+        
         data_sampler = Sampler(chunks)
         if args.val_every > 0:
             val_chunks = load_dataset(enc, args.val_dataset, args.combine) if args.val_dataset else chunks
@@ -181,8 +186,11 @@ def main():
             # Sample from validation set once with fixed seed to make
             # it deterministic during training as well as across runs.
             val_data_sampler = Sampler(val_chunks, seed=1)
+            
+            # helena
             print('total token size in validation set is')
             print(val_data_sampler.total_size)
+            
             val_batches = [[val_data_sampler.sample(1024) for _ in range(args.val_batch_size)]
                            for _ in range(args.val_batch_count)]
 
