@@ -99,12 +99,15 @@ def interact_model(
                     # filter out \n only sentences
                     else:
                         text = '\n'
-
+                        
                     # show some progress    
-                    if (i/2/4)%1000 == 0:
-                        print('processing file %d ' % (i/2/4))
+                    if i %91 == 0:
+                        print('processing file %d ' % i)
+                        print(raw_text)
+                        print('*'*10)
+                        print(text)
+                        print('='*10)
                     to_write += text
-                    print(to_write)
                 else:
                     break
         save(filename.replace('X_test','y_pred'), to_write, overwrite)
