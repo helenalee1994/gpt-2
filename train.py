@@ -12,9 +12,9 @@ import tqdm
 from tensorflow.core.protobuf import rewriter_config_pb2
 
 from src import model, sample, encoder
-from load_dataset import load_dataset, Sampler
-from accumulate import AccumulatingOptimizer
-import memory_saving_gradients
+from src.load_dataset import load_dataset, Sampler
+from src.accumulate import AccumulatingOptimizer
+from src import memory_saving_gradients
 
 CHECKPOINT_DIR = 'checkpoint'
 SAMPLE_DIR = 'samples'
