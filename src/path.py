@@ -7,4 +7,7 @@ path = ''
 path = 'gpt-2/'
 path_to_model = path + 'models/'
 
+## in the colab
+path = '/content/gpt-2/'
+path_to_model = path + 'models/'
 
