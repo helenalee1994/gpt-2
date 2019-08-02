@@ -81,8 +81,7 @@ def interact_model(
             for j, raw_text in enumerate(f):
                 if j < nrecipes or nrecipes == -1:
                     if not j%2: 
-                        # remove the newline token in raw_text
-                        # encoding maybe the time limiting step
+                        # very important, need to remove the newline token in each line
                         context_tokens = enc.encode(raw_text.replace('\n',''))
 
                         generated = 0
