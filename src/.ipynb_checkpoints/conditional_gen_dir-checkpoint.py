@@ -7,11 +7,31 @@ import os
 import numpy as np
 import tensorflow as tf
 import tqdm
+import re
 
 from . import model, sample, encoder
 from .path import path_to_model
 from .load_dataset import load_dataset
 from .save import save, make_dir, datetime
+
+
+def clean_line(line):
+    '''
+    Args:
+        line: a string, such as food name, sentences...
+    '''
+    # all lowercase
+    line = str(line)
+    line = line.lower()
+    # only reserve number and alphabets
+    line = re.sub(r'[^a-z0-9+()/?!.,]', ' ', line)
+    # add space before punctuation
+    line = re.sub('([.,!?()])', r' \1 ', line)
+    line = re.sub('\s{2,}', ' ', line)
+    # remove extra spaces
+    line = re.sub(' +',' ',line).strip()
+    return line
+
 
 def interact_model(
     model_name='117M',
@@ -75,7 +95,7 @@ def interact_model(
                 path = os.path.join(dirpath, fname)
                 with open(path, 'r') as fp:
                     raw_text = fp.read()
-                    context_tokens = enc.encode(raw_text.replace('\n',''))
+                    context_tokens = enc.encode(raw_text.replace('\n','')[:-1])
                     documents.append((path, context_tokens))
     print('time spent in encoding', datetime.now() - start_encode)
     if max_document:

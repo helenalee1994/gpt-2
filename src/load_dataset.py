@@ -42,19 +42,6 @@ def load_dataset(enc, path, combine):
         token_chunks.append(tokens)
     return token_chunks
 
-
-def binary_search(f, lo, hi):
-    if f(lo) or not f(hi):
-        return None
-    while hi > lo + 1:
-        mid = (lo + hi) // 2
-        if f(mid):
-            hi = mid
-        else:
-            lo = mid
-    return hi
-
-
 class Sampler(object):
     """Fairly samples a slice from a set of variable sized chunks.
 

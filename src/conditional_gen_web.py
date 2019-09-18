@@ -70,8 +70,8 @@ def interact_model(
         ckpt = tf.train.latest_checkpoint(os.path.join(path_to_model, model_name))
         saver.restore(sess, ckpt)
         
-
         context_tokens = enc.encode(raw_text)
+        
         # may be useful if we want to evaluate the fields respectively
         #last_token = raw_text.split(' ')[-1].replace('\n','')
 

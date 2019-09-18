@@ -2,6 +2,7 @@ from datetime import datetime
 dir_HugeFiles = ''
 import pickle
 import os
+import tqdm
 
 def current_time():
     date_time = datetime.now()
@@ -67,3 +68,19 @@ def save(filename, to_write, overwrite = False, print_= True):
             f.write('%s' % to_write)
         if print_:
             print('saved '+filename)
+            
+def to_one_file(filename, max_document, overwrite = False, n_fields = 3):
+    if os.path.isdir(filename):
+        documents = []
+        for (dirpath, _, fnames) in os.walk(filename):
+            print(dirpath)
+            for fname in tqdm.tqdm(fnames):
+                path = os.path.join(dirpath, fname)
+                with open(path, 'r') as fp:
+                    raw_text = fp.read()
+                    documents.append(raw_text.replace('\n','').split('<')[0])
+    if max_document:
+        documents = documents[:max_document]
+    for field in range(n_fields):
+        to_write = '\n'.join(documents[0+field::n_fields])
+        save(dirpath[:-1]+'_one%d.txt'%(field), to_write, overwrite)
