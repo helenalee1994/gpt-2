@@ -95,7 +95,8 @@ def interact_model(
                 path = os.path.join(dirpath, fname)
                 with open(path, 'r') as fp:
                     raw_text = fp.read()
-                    context_tokens = enc.encode(raw_text.replace('\n','')[:-1])
+                    # Reminder: the last token in raw_text should not be either \n or space
+                    context_tokens = enc.encode(raw_text.replace('\n',''))
                     documents.append((path, context_tokens))
     print('time spent in encoding', datetime.now() - start_encode)
     if max_document:

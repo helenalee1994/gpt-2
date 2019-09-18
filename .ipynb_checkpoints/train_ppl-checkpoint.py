@@ -218,7 +218,9 @@ def main():
 
         def generate_samples():
             print('Generating samples...')
-            context_tokens = data_sampler.sample(150)
+            # pick the first 150 tokens in the original document
+            # note: do not include the <|endoftext|>
+            context_tokens = data_sampler.sample(0)[:150]
             all_text = []
             index = 0
             while index < args.sample_num:

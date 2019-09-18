@@ -31,7 +31,7 @@ def load_dataset(enc, path, combine):
             # Plain text
             with open(path, 'r') as fp:
                 raw_text = fp.read()
-                tokens = enc.encode(raw_text+ '<|endoftext|>') 
+                tokens = enc.encode(raw_text) #+ '<|endoftext|>') 
                 token_chunks.append(tokens)
                 
     # list of list
@@ -61,15 +61,16 @@ class Sampler(object):
             tokens = self.chunks[index]
             if shuffle:
                 tokens = self.shuffle(tokens, shuffle_ingredients)
-
-            import pdb; pdb.set_trace()
+            # BPE encoding for '<|endoftext|>'
+            tokens += [27, 91, 437, 1659, 5239, 91, 29]
+            # import pdb; pdb.set_trace()
             # if not no constraints
             if not length == 0:
                 diff = length - len(tokens)
                 if diff > 0:
-                    tokens += [16791] * diff # 16791 corresponding to <<
-                else:
-                    start = self.rs.randint(0, diff)
+                    tokens += [16791] * diff # 16791 corresponds to <<
+                elif diff < 0:
+                    start = self.rs.randint(0, abs(diff))
                     tokens = tokens[start:start+length]
             
             return np.array(tokens)
