@@ -48,6 +48,7 @@ class Sampler(object):
         self.chunks = chunks
         self.n_documents = len(chunks)
         self.rs = np.random.RandomState(seed=seed)
+        self.seed = seed
         
         # shuffle-related
         self.targets = {' <start-directions>': [1279, 9688, 12, 12942, 507, 29],
@@ -76,6 +77,7 @@ class Sampler(object):
             return np.array(tokens)
 
     def shuffle_ingredients(self, encoded_file):
+        random.seed(self.seed)
         start, end, output = len(self.targets[' <start-ingredients>'])+1, 0, []
         for idx, token in enumerate(encoded_file):
             if idx >= start and encoded_file[idx] in [3]:
@@ -89,6 +91,7 @@ class Sampler(object):
         ''' main version
         Args: encoded_file: a list encodes e.g. ' <start-title>easy, crunchy hot dogs <end-title> <start-ingr...'
         '''
+        random.seed(self.seed)
         idx_targets = {}
         # read list
         start, end, output = 0, 0, []

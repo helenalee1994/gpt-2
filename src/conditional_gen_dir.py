@@ -91,6 +91,7 @@ def interact_model(
     if os.path.isdir(filename):
         # Directory
         for (dirpath, _, fnames) in os.walk(filename):
+            fnames.sort()
             for fname in tqdm.tqdm(fnames):
                 path = os.path.join(dirpath, fname)
                 with open(path, 'r') as fp:
