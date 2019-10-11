@@ -176,7 +176,7 @@ def main():
         else:
             ckpt = tf.train.latest_checkpoint(args.restore_from)
         print('Loading checkpoint', ckpt)
-        saver.restore(sess, ckpt)
+       # saver.restore(sess, ckpt)
 
         print('Loading dataset...')
         if args.dataset == 'eval_only':

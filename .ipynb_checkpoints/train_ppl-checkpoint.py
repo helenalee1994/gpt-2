@@ -52,6 +52,7 @@ parser.add_argument('--val_batch_count', metavar='N', type=int, default=300, hel
 parser.add_argument('--val_every', metavar='STEPS', type=int, default=0, help='Calculate validation loss every STEPS steps.')
 parser.add_argument('--max_length', metavar='N', type=int, default=0, help='Max number of tokens, if zero than use the original length') # for batch
 
+parser.add_argument('--trains', type=str, default='', help='project name for trains')
 
 def maketree(path):
     try:
@@ -71,6 +72,11 @@ def randomize(context, hparams, p):
 
 def main():
     args = parser.parse_args()
+    
+    if args.trains:
+        from trains import Task
+        task = Task.init(project_name="HelenaProject", task_name=args.trains)
+    
     enc = encoder.get_encoder(args.model_name)
     hparams = model.default_hparams()
     with open(os.path.join('models', args.model_name, 'hparams.json')) as f:

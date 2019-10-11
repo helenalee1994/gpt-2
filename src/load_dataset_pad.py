@@ -4,12 +4,16 @@ import os
 import tensorflow as tf
 import tqdm
 import random
+from .save import load_pickle
 
 def load_dataset(enc, path, combine):
     paths = []
     if os.path.isfile(path):
         # Simple file
         paths.append(path)
+        if 'chunk' in path:
+            return load_pickle(path)
+        
     elif os.path.isdir(path):
         # Directory
         for (dirpath, _, fnames) in os.walk(path):
@@ -44,11 +48,20 @@ class Sampler(object):
     'Fairly' means that the distribution is the same as sampling from one concatenated chunk,
     but without crossing chunk boundaries."""
 
-    def __init__(self, chunks, seed=None):
+    def __init__(self, 
+                 chunks, 
+                 shuffle_ingredients=True, 
+                 shuffle_fields=True, 
+                 seed=None,
+                 max_ingred = None):
+        
         self.chunks = chunks
         self.n_documents = len(chunks)
         self.rs = np.random.RandomState(seed=seed)
         self.seed = seed
+        self.shuffle_ingredients = shuffle_ingredients
+        self.shuffle_fields = shuffle_fields
+        self.max_ingred = max_ingred
         
         # shuffle-related
         self.targets = {' <start-directions>': [1279, 9688, 12, 12942, 507, 29],
@@ -56,12 +69,15 @@ class Sampler(object):
                         ' <start-title>': [1279, 9688, 12, 7839, 29]}
         self.end_tag = [1279, 437, 12, 278, 23320, 29]
         
-    def sample(self, length, shuffle_ingredients = True, shuffle = True):
+    def sample(self, length): #, shuffle_ingredients = True, shuffle = True):
         while True:
             index = self.rs.randint(0, self.n_documents)
             tokens = self.chunks[index]
-            if shuffle:
-                tokens = self.shuffle(tokens, shuffle_ingredients)
+            if self.shuffle_fields:
+                tokens = self.shuffle(tokens)
+            elif self.shuffle_ingredients:
+                tokens = self.shuffle(tokens, ingred_only = True)
+                
             # BPE encoding for '<|endoftext|>'
             tokens += [27, 91, 437, 1659, 5239, 91, 29]
             # import pdb; pdb.set_trace()
@@ -76,7 +92,7 @@ class Sampler(object):
             
             return np.array(tokens)
 
-    def shuffle_ingredients(self, encoded_file):
+    def shuff_ingredients(self, encoded_file):
         random.seed(self.seed)
         start, end, output = len(self.targets[' <start-ingredients>'])+1, 0, []
         for idx, token in enumerate(encoded_file):
@@ -85,9 +101,12 @@ class Sampler(object):
                 output.append(encoded_file[start:end])
                 start = idx+1
         random.shuffle(output)
+        if self.max_ingred:
+            output = output[:self.max_ingred]
+            
         return  self.targets[' <start-ingredients>'] +sum(output, []) + self.end_tag
 
-    def shuffle(self, encoded_file, shuffle_ingredients = True):
+    def shuffle(self, encoded_file, ingred_only = False):
         ''' main version
         Args: encoded_file: a list encodes e.g. ' <start-title>easy, crunchy hot dogs <end-title> <start-ingr...'
         '''
@@ -99,10 +118,14 @@ class Sampler(object):
             if encoded_file[idx: idx+2] ==[1279, 9688]:
                 end = idx
                 field = encoded_file[start:end]
-                if start != 0 and shuffle_ingredients:
-                    field = self.shuffle_ingredients(field)
+                if start != 0 and self.shuffle_ingredients:
+                    field = self.shuff_ingredients(field)
                 output.append(field)
                 start = idx
         output.append(encoded_file[start:])
-        random.shuffle(output)
+        
+        if not ingred_only:
+            # shuffle each fields
+            random.shuffle(output)
+            
         return sum(output, [])

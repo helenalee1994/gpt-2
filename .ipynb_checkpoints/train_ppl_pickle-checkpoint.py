@@ -75,7 +75,9 @@ def main():
     if args.trains:
         from trains import Task
         task = Task.init(project_name="HelenaProject", task_name=args.trains)
-    
+        params = vars(args)
+        params = task.connect(params)
+         
     enc = encoder.get_encoder(args.model_name)
     hparams = model.default_hparams()
     with open(os.path.join('models', args.model_name, 'hparams.json')) as f:

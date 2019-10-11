@@ -187,7 +187,11 @@ def main():
             print(len(chunks))
             print(len(chunks[0]))
         
-        data_sampler = Sampler(chunks)
+        data_sampler = Sampler(chunks, 
+                               shuffle_ingredients=True,
+                               shuffle_fields=False, 
+                               max_ingred = 3
+                              )
         if args.val_every > 0:
             val_chunks = load_dataset(enc, args.val_dataset, args.combine) if args.val_dataset else chunks
 
@@ -196,7 +200,13 @@ def main():
         if args.val_every > 0:
             # Sample from validation set once with fixed seed to make
             # it deterministic during training as well as across runs.
-            val_data_sampler = Sampler(val_chunks, seed=1)
+            val_data_sampler = Sampler(val_chunks, 
+                                       seed=1, 
+                                       shuffle_ingredients=True,
+                                       shuffle_fields=False, 
+                                       max_ingred = 3
+                                      )
+
             val_batches = [[val_data_sampler.sample(args.max_length) for _ in range(args.val_batch_size)]
                            for _ in range(args.val_batch_count)]
 
