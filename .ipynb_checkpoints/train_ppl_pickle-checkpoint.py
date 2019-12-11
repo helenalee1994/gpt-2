@@ -264,7 +264,8 @@ def main():
                     loss=v_val_loss,
                     ppl=np.exp(v_val_loss))
             )
-            return v_val_loss
+            # round so it will stop a little bit sooner
+            return round(v_val_loss, 3)
 
         def sample_batch(): # speficially for sampling training set
             return [data_sampler.sample(args.max_length) for _ in range(args.batch_size)]

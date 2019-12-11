@@ -53,10 +53,11 @@ class Sampler(object):
                  shuffle_ingredients=True, 
                  shuffle_fields=True, 
                  seed=None,
-                 max_ingred = None):
+                 max_ingred = None, 
+                 max_token = 512):
         
-        self.chunks = chunks
-        self.n_documents = len(chunks)
+        self.chunks = [recipe for recipe in chunks if len(recipe)<= max_token]
+        self.n_documents = len(self.chunks)
         self.rs = np.random.RandomState(seed=seed)
         self.seed = seed
         self.shuffle_ingredients = shuffle_ingredients
@@ -117,9 +118,11 @@ class Sampler(object):
         for idx, token in enumerate(encoded_file):
             if encoded_file[idx: idx+2] ==[1279, 9688]:
                 end = idx
-                field = encoded_file[start:end]
                 if start != 0 and self.shuffle_ingredients:
+                    field = encoded_file[start-1:end]
                     field = self.shuff_ingredients(field)
+                else:
+                    field = encoded_file[start:end]
                 output.append(field)
                 start = idx
         output.append(encoded_file[start:])

@@ -9,7 +9,7 @@ import tensorflow as tf
 import tqdm
 import re
 
-from . import model, sample, encoder
+from .import model, sample, encoder
 from .path import path_to_model
 from .load_dataset import load_dataset
 from .save import save, make_dir, datetime
@@ -94,11 +94,12 @@ def interact_model(
             fnames.sort()
             for fname in tqdm.tqdm(fnames):
                 path = os.path.join(dirpath, fname)
-                with open(path, 'r') as fp:
-                    raw_text = fp.read()
-                    # Reminder: the last token in raw_text should not be either \n or space
-                    context_tokens = enc.encode(raw_text.replace('\n',''))
-                    documents.append((path, context_tokens))
+                if 't.' not in fname:
+                    with open(path, 'r') as fp:
+                        raw_text = fp.read()
+                        # Reminder: the last token in raw_text should not be either \n or space
+                        context_tokens = enc.encode(raw_text.replace('\n',''))
+                        documents.append((path, context_tokens))
     print('time spent in encoding', datetime.now() - start_encode)
     if max_document:
         documents = documents[:max_document]
