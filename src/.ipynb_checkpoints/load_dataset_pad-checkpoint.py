@@ -56,7 +56,7 @@ class Sampler(object):
                  max_ingred = None, 
                  max_token = 512):
         
-        self.chunks = [recipe for recipe in chunks if len(recipe)<= max_token]
+        self.chunks = chunks #[recipe for recipe in chunks if len(recipe)<= max_token]
         self.n_documents = len(self.chunks)
         self.rs = np.random.RandomState(seed=seed)
         self.seed = seed

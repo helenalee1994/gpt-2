@@ -12,7 +12,7 @@ import tqdm
 from tensorflow.core.protobuf import rewriter_config_pb2
 
 from src import model, sample, encoder
-from src.load_dataset import load_dataset, Sampler
+from src.load_dataset_pad import load_dataset, Sampler
 from src.accumulate import AccumulatingOptimizer
 from src import memory_saving_gradients
 
@@ -29,7 +29,7 @@ parser.add_argument('--model_name', metavar='MODEL', type=str, default='117M', h
 parser.add_argument('--combine', metavar='CHARS', type=int, default=50000, help='Concatenate input files with <|endoftext|> separator into chunks of this minimum size')
 
 parser.add_argument('--batch_size', metavar='SIZE', type=int, default=1, help='Batch size')
-parser.add_argument('--learning_rate', metavar='LR', type=float, default=0.00002, help='Learning rate for Adam')
+parser.add_argument('--learning_rate', metavar='LR', type=float, default=2e-5, help='Learning rate for Adam')
 parser.add_argument('--accumulate_gradients', metavar='N', type=int, default=1, help='Accumulate gradients across N minibatches.')
 parser.add_argument('--memory_saving_gradients', default=False, action='store_true', help='Use gradient checkpointing to reduce vram usage.')
 parser.add_argument('--only_train_transformer_layers', default=False, action='store_true', help='Restrict training to the transformer blocks.')
@@ -41,16 +41,17 @@ parser.add_argument('--top_p', type=float, default=0.0, help='P for top-p sampli
 
 parser.add_argument('--restore_from', type=str, default='latest', help='Either "latest", "fresh", or a path to a checkpoint file')
 parser.add_argument('--run_name', type=str, default='run1', help='Run id. Name of subdirectory in checkpoint/ and samples/')
-parser.add_argument('--sample_every', metavar='N', type=int, default=100, help='Generate samples every N steps')
-parser.add_argument('--sample_length', metavar='TOKENS', type=int, default=1023, help='Sample this many tokens')
+parser.add_argument('--sample_every', metavar='N', type=int, default=10000000, help='Generate samples every N steps')
+parser.add_argument('--sample_length', metavar='TOKENS', type=int, default=300, help='Sample this many tokens') # for demo
 parser.add_argument('--sample_num', metavar='N', type=int, default=1, help='Generate this many samples')
-parser.add_argument('--save_every', metavar='N', type=int, default=1000, help='Write a checkpoint every N steps')
+parser.add_argument('--save_every', metavar='N', type=int, default=100000000, help='Write a checkpoint every N steps')
 
 parser.add_argument('--val_dataset', metavar='PATH', type=str, default=None, help='Dataset for validation loss, defaults to --dataset.')
-parser.add_argument('--val_batch_size', metavar='SIZE', type=int, default=2, help='Batch size for validation.')
-parser.add_argument('--val_batch_count', metavar='N', type=int, default=40, help='Number of batches for validation.')
+parser.add_argument('--val_batch_size', metavar='SIZE', type=int, default=1, help='Batch size for validation.')
+parser.add_argument('--val_batch_count', metavar='N', type=int, default=300, help='Number of batches for validation.')
 parser.add_argument('--val_every', metavar='STEPS', type=int, default=0, help='Calculate validation loss every STEPS steps.')
-
+parser.add_argument('--max_length', metavar='N', type=int, default=0, help='Max number of tokens, if zero than use the original length') # for batch
+parser.add_argument('--trains', type=str, default='', help='project name for trains')
 
 def maketree(path):
     try:
@@ -70,6 +71,13 @@ def randomize(context, hparams, p):
 
 def main():
     args = parser.parse_args()
+    
+    if args.trains:
+        from trains import Task
+        task = Task.init(project_name="HelenaProject", task_name=args.trains)
+        params = vars(args)
+        params = task.connect(params)
+         
     enc = encoder.get_encoder(args.model_name)
     hparams = model.default_hparams()
     with open(os.path.join('models', args.model_name, 'hparams.json')) as f:
@@ -92,7 +100,7 @@ def main():
         context_in = randomize(context, hparams, args.noise)
         output = model.model(hparams=hparams, X=context_in)
         loss = tf.reduce_mean(
-            tf.nn.sparse_softmax_cross_entropy_with_logits(
+                tf.nn.sparse_softmax_cross_entropy_with_logits(
                 labels=context[:, 1:], logits=output['logits'][:, :-1]))
 
         if args.val_every > 0:
@@ -153,8 +161,11 @@ def main():
             max_to_keep=5,
             keep_checkpoint_every_n_hours=2)
         sess.run(tf.global_variables_initializer())
-
-        if args.restore_from == 'latest':
+        
+        if args.dataset == 'eval_only':
+            ckpt = tf.train.latest_checkpoint(os.path.join('models', args.model_name))
+            
+        elif args.restore_from == 'latest':
             ckpt = tf.train.latest_checkpoint(
                 os.path.join(CHECKPOINT_DIR, args.run_name))
             if ckpt is None:
@@ -167,21 +178,29 @@ def main():
         else:
             ckpt = tf.train.latest_checkpoint(args.restore_from)
         print('Loading checkpoint', ckpt)
-        saver.restore(sess, ckpt)
+        # this is the only change
+        # saver.restore(sess, ckpt)
 
         print('Loading dataset...')
-        chunks = load_dataset(enc, args.dataset, args.combine)
+        if args.dataset == 'eval_only':
+            #assign dummy data to save time
+            chunks = [np.array([1,2,3,4,5,6]),np.array([1,2,3,4,5,6])] 
+        else:
+            chunks = load_dataset(enc, args.dataset, args.combine)
+            print(len(chunks))
+            print(len(chunks[0]))
+        
         data_sampler = Sampler(chunks)
         if args.val_every > 0:
             val_chunks = load_dataset(enc, args.val_dataset, args.combine) if args.val_dataset else chunks
-        print('dataset has', data_sampler.total_size, 'tokens')
+
         print('Training...')
 
         if args.val_every > 0:
             # Sample from validation set once with fixed seed to make
             # it deterministic during training as well as across runs.
             val_data_sampler = Sampler(val_chunks, seed=1)
-            val_batches = [[val_data_sampler.sample(1024) for _ in range(args.val_batch_size)]
+            val_batches = [[val_data_sampler.sample(args.max_length) for _ in range(args.val_batch_size)]
                            for _ in range(args.val_batch_count)]
 
         counter = 1
@@ -207,7 +226,9 @@ def main():
 
         def generate_samples():
             print('Generating samples...')
-            context_tokens = data_sampler.sample(1)
+            # pick the first 150 tokens in the original document
+            # note: do not include the <|endoftext|>
+            context_tokens = data_sampler.sample(0)[:150]
             all_text = []
             index = 0
             while index < args.sample_num:
@@ -237,14 +258,18 @@ def main():
             summary_log.add_summary(v_summary, counter)
             summary_log.flush()
             print(
-                '[{counter} | {time:2.2f}] validation loss = {loss:2.2f}'
+                '[{counter} | {time:2.2f}] validation loss = {loss:2.2f} |validation ppl = {ppl:2.2f}'
                 .format(
                     counter=counter,
                     time=time.time() - start_time,
-                    loss=v_val_loss))
+                    loss=v_val_loss,
+                    ppl=np.exp(v_val_loss))
+            )
+            # round so it will stop a little bit sooner
+            return round(v_val_loss, 3)
 
-        def sample_batch():
-            return [data_sampler.sample(1024) for _ in range(args.batch_size)]
+        def sample_batch(): # speficially for sampling training set
+            return [data_sampler.sample(args.max_length) for _ in range(args.batch_size)]
 
 
         avg_loss = (0.0, 0.0)
@@ -257,7 +282,20 @@ def main():
                 if counter % args.sample_every == 0:
                     generate_samples()
                 if args.val_every > 0 and (counter % args.val_every == 0 or counter == 1):
-                    validation()
+                    validation_loss = validation()
+                    # test existance
+                    try: 
+                        best_validation_loss
+                    except NameError:
+                        best_validation_loss = validation_loss
+                        
+                    print(validation_loss, best_validation_loss)
+                    if min(validation_loss, best_validation_loss) != best_validation_loss:
+                        best_validation_loss = validation_loss
+                        save()
+                    
+                    if args.dataset == 'eval_only':
+                        return### helena
 
                 if args.accumulate_gradients > 1:
                     sess.run(opt_reset)

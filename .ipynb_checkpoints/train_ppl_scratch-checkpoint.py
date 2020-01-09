@@ -15,7 +15,6 @@ from src import model, sample, encoder
 from src.load_dataset_pad import load_dataset, Sampler
 from src.accumulate import AccumulatingOptimizer
 from src import memory_saving_gradients
-from src.save import load_pickle
 
 CHECKPOINT_DIR = 'checkpoint'
 SAMPLE_DIR = 'samples'
@@ -52,7 +51,7 @@ parser.add_argument('--val_batch_size', metavar='SIZE', type=int, default=1, hel
 parser.add_argument('--val_batch_count', metavar='N', type=int, default=300, help='Number of batches for validation.')
 parser.add_argument('--val_every', metavar='STEPS', type=int, default=0, help='Calculate validation loss every STEPS steps.')
 parser.add_argument('--max_length', metavar='N', type=int, default=0, help='Max number of tokens, if zero than use the original length') # for batch
-
+parser.add_argument('--trains', type=str, default='', help='project name for trains')
 
 def maketree(path):
     try:
@@ -72,6 +71,13 @@ def randomize(context, hparams, p):
 
 def main():
     args = parser.parse_args()
+    
+    if args.trains:
+        from trains import Task
+        task = Task.init(project_name="HelenaProject", task_name=args.trains)
+        params = vars(args)
+        params = task.connect(params)
+         
     enc = encoder.get_encoder(args.model_name)
     hparams = model.default_hparams()
     with open(os.path.join('models', args.model_name, 'hparams.json')) as f:
@@ -89,39 +95,13 @@ def main():
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
     config.graph_options.rewrite_options.layout_optimizer = rewriter_config_pb2.RewriterConfig.OFF
-    
-    
-    
     with tf.Session(config=config) as sess:
         context = tf.placeholder(tf.int32, [args.batch_size, None])
         context_in = randomize(context, hparams, args.noise)
         output = model.model(hparams=hparams, X=context_in)
-        
-        
-        # BEGIN of modification
-        # originally, the loss is:
-        CE_loss =  tf.nn.sparse_softmax_cross_entropy_with_logits(labels=context[:, 1:], logits=output['logits'][:, :-1])
-        
-        # create the vector of weighting
-        vector_of_ones = tf.Variable(tf.ones([hparams.n_vocab]), dtype=tf.float32, trainable=False)
-        target_token_ids =load_pickle('most_common_tokens.pickle')
-        indices = tf.constant([i for i in target_token_ids])
-        weighted_class = tf.constant(5.0, shape=[len(target_token_ids)], dtype=tf.float32)
-        scattered_weighted_loss = tf.scatter_update(vector_of_ones, indices, weighted_class)
-        
-        # ground truth used to be: [1,0,1,0], now it becomes [2,0,1,0] if the first token is our target word
-        # it penalizes the false negative cases but ignore the false positive cases
-        weighted_loss = tf.reduce_sum(tf.one_hot(context[:, 1:], hparams.n_vocab) * scattered_weighted_loss, axis=-1)
-        weighted_CE_loss = CE_loss * weighted_loss
-        loss = tf.reduce_mean(weighted_CE_loss)
-        # END of modification
-        
-        
-        ''' Older version
         loss = tf.reduce_mean(
                 tf.nn.sparse_softmax_cross_entropy_with_logits(
                 labels=context[:, 1:], logits=output['logits'][:, :-1]))
-        '''
 
         if args.val_every > 0:
             val_context = tf.placeholder(tf.int32, [args.val_batch_size, None])
@@ -198,7 +178,8 @@ def main():
         else:
             ckpt = tf.train.latest_checkpoint(args.restore_from)
         print('Loading checkpoint', ckpt)
-        saver.restore(sess, ckpt)
+        # this is the only change
+        # saver.restore(sess, ckpt)
 
         print('Loading dataset...')
         if args.dataset == 'eval_only':
@@ -284,7 +265,8 @@ def main():
                     loss=v_val_loss,
                     ppl=np.exp(v_val_loss))
             )
-            return v_val_loss
+            # round so it will stop a little bit sooner
+            return round(v_val_loss, 3)
 
         def sample_batch(): # speficially for sampling training set
             return [data_sampler.sample(args.max_length) for _ in range(args.batch_size)]
