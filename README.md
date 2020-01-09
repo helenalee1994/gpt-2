@@ -98,12 +98,20 @@ We may release code for evaluating the models on various benchmarks.
 We are still considering release of the larger models.
 
 
-## Modification to nshepperd/gpt-2
-append eval for bleu calaculation <br>
+## Modification to nshepperd/gpt-2 to faciliate RecipeGPT
+append eval for BLEU calaculation <br>
 requirement.txt --> requirement_web.txt <br>
-src/interactive_conditional_samples.py --> conditional_gen_helena.py <br>
-src/interactive_conditional_samples.py --> conditional_gen_web.py <br>
-append src/path.py: must change according to the path/environment everytime <br>
+append src/path.py: must change according to the path/environment everytime 
+### enable inference to a directory of prompts
+src/interactive_conditional_samples.py --> conditional_gen_dir.py <br>
+### enable padding and fields shuffing
+src/load_dataset.py	--> src/load_dataset_pad.py	
+### enable loading datafrom pickle
+train.py --> train_ppl_pickle.py
+### enable training from scratch
+train_ppl_pickle.py --> train_ppl_scratch.py
+
+<br>
 ## License
 
 [MIT](./LICENSE)
