@@ -98,8 +98,11 @@ We may release code for evaluating the models on various benchmarks.
 We are still considering release of the larger models.
 
 
-## Modification to nshepperd/gpt-2 to faciliate RecipeGPT
-append eval for BLEU calaculation <br>
+
+## this repot modifies nshepperd/gpt-2 to faciliate recipe geneation
+The commands for the following files can be found at <br>
+https://github.com/LARC-CMU-SMU/AllrecipeAnalytics <br>
+
 requirement.txt --> requirement_web.txt <br>
 append src/path.py: must change according to the path/environment everytime 
 ### enable inference to a directory of prompts
