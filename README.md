@@ -99,10 +99,7 @@ We are still considering release of the larger models.
 
 
 
-## this repot modifies nshepperd/gpt-2 to faciliate recipe geneation
-The commands for the following files can be found at <br>
-https://github.com/LARC-CMU-SMU/AllrecipeAnalytics <br>
-
+## this repo modifies nshepperd/gpt-2 to faciliate recipe geneation
 requirement.txt --> requirement_web.txt <br>
 append src/path.py: must change according to the path/environment everytime 
 ### enable inference to a directory of prompts
@@ -114,7 +111,10 @@ train.py --> train_ppl_pickle.py
 ### enable training from scratch
 train_ppl_pickle.py --> train_ppl_scratch.py
 
-<br>
+The commands for utilizing this repo can be found at <br>
+https://github.com/LARC-CMU-SMU/AllrecipeAnalytics <br>
+
+
 ## License
 
 [MIT](./LICENSE)
