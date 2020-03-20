@@ -4,3 +4,5 @@ models/
 checkpoint
 samples
 to_gpt2/
+models_old/
+checkpoint_old/
